@@ -31,7 +31,7 @@ int read_usr_req(char *buf) {
         } else {
             return -1;
         }
-        bzero(line,MAX_LINE_SIZE);
+        memset(line, 0,MAX_LINE_SIZE);
     }
     return 0;
 }
@@ -40,49 +40,52 @@ int main(int argc, char *argv[]) {
     struct hostent *server;
     int sock_fd;
     struct sockaddr_in serv_addr;
-    char recv_buf[MAX_BUF_SIZE]={},
-            buf[MAX_BUF_SIZE]={},
-            req[MAX_BUF_SIZE]={};
+    char recv_buf[MAX_BUF_SIZE] = {},
+            buf[MAX_BUF_SIZE] = {};
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <host> <port>\n", argv[0]);
+        exit(1);
     }
     // socket ipv4 tcp
     sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock_fd < 0) {
+        fprintf(stderr, "Error creating a socket");
+        exit(1);
+    }
     if (inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)) {
         server = gethostbyaddr(&serv_addr.sin_addr, sizeof(serv_addr.sin_addr),AF_INET);
         if (server == NULL) {
-            fprintf(stderr, "Error getting host address for %s",argv[1]);
+            fprintf(stderr, "Error getting host address for %s", argv[1]);
             exit(1);
         }
     } else {
         server = gethostbyname(argv[1]);
         if (server == NULL) {
-            fprintf(stderr, "Error getting host address for %s",argv[1]);
+            fprintf(stderr, "Error getting host address for %s", argv[1]);
             exit(1);
         }
     }
-    bcopy(server->h_addr, &serv_addr.sin_addr.s_addr, server->h_length);
+    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(atoi(argv[2]));
     if (connect(sock_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         fprintf(stderr, "connect");
         exit(1);
     }
-    if (read_usr_req(req)<0) {
-        fprintf(stderr,"Problem with user input");
+    if (read_usr_req(buf) < 0) {
+        fprintf(stderr, "Problem with user input");
         exit(1);
     }
-    memcpy(buf, req, strlen(req));
-    ssize_t n = write(sock_fd, buf,MAX_BUF_SIZE);
-    if (n<0) {
+    ssize_t n = write(sock_fd, buf, strlen(buf));
+    if (n < 0) {
         fprintf(stderr, "Error reading response");
         exit(1);
     }
     while (read(sock_fd, recv_buf,MAX_BUF_SIZE) == MAX_BUF_SIZE) {
-        printf(recv_buf);
-        bzero(recv_buf,MAX_BUF_SIZE);
+        fwrite(recv_buf, sizeof(char), strlen(recv_buf),stdout);
+        memset(recv_buf, 0,MAX_BUF_SIZE);
     }
-    printf(recv_buf);
+    fwrite(recv_buf, sizeof(char), strlen(recv_buf),stdout);
     close(sock_fd);
     return 0;
 }
