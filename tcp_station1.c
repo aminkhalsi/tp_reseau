@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#define MAX_BUFFER_SIZE
+#define MAX_BUFFER_SIZE 1024
 int main(int argc, char *argv[]) {
 
     if (argc != 3) {
