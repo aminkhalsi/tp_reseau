@@ -7,7 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 
-static void send_time(int);
+void send_time(int);
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
