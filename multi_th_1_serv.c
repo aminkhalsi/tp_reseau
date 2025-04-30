@@ -8,7 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 
-void *handle_client(void *arg);
+void *send_time(void *arg);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -50,14 +50,14 @@ int main(int argc, char *argv[]) {
         pthread_t tid;
         int *pclient = malloc(sizeof(int));
         *pclient = client_fd;
-        pthread_create(&tid, NULL, handle_client, pclient);
+        pthread_create(&tid, NULL, send_time, pclient);
         pthread_detach(tid);
     }
 
     close(server_fd);
     return 0;
 }
-void *handle_client(void *arg) {
+void *send_time(void *arg) {
     int connfd = *((int *)arg);
     free(arg);
 
